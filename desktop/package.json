@@ -1,0 +1,44 @@
+{
+  "name": "ferramentaria-desktop",
+  "version": "1.0.0",
+  "description": "Aplicativo desktop de ferramentaria para Windows",
+  "main": "main.js",
+  "author": "Ferramentaria",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "br.ferramentaria.desktop",
+    "productName": "Ferramentaria",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "../frontend/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist/backend.exe",
+        "to": "backend/backend.exe"
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "assets/app.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.0.2",
+    "electron-builder": "^24.13.3"
+  }
+}
