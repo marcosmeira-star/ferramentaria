@@ -1,4 +1,4 @@
-const API = 'http://localhost:8000';
+const API = window.__API_BASE__ || 'http://127.0.0.1:8000';
 let cache = { clientes: [], ferramentas: [], emprestimosAbertos: [] };
 
 const views = ['dashboard', 'clientes', 'ferramentas', 'emprestimos', 'devolucoes', 'historico'];

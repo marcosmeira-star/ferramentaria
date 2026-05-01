@@ -1,96 +1,156 @@
-# Sistema Web de Ferramentaria
+# Ferramentaria Desktop para Windows
 
-Sistema completo para controle de empréstimo e devolução de ferramentas, com **frontend web**, **backend API** e **banco SQL (PostgreSQL)**, pronto para subir com Docker Compose.
+Este projeto foi adaptado para funcionar como **aplicativo desktop nativo para Windows** (janela própria, sem navegador), com geração de instalador e executável.
 
-## Stack escolhida
+## Solução escolhida (profissional para Windows)
 
-- **Frontend:** HTML/CSS/JavaScript (SPA simples em Nginx)
-- **Backend:** Python + FastAPI + SQLAlchemy
-- **Banco:** PostgreSQL 16
-- **Orquestração:** Docker Compose
+### Stack final
+- **UI Desktop:** Electron (janela nativa, ícone, instalador NSIS, atalho na área de trabalho).
+- **Frontend:** HTML/CSS/JS local (carregado no Electron).
+- **Backend:** FastAPI empacotado em `backend.exe` (PyInstaller).
+- **Banco local:** SQLite em arquivo no perfil do usuário Windows (sem necessidade de instalar PostgreSQL no cliente final).
 
-## Funcionalidades implementadas
+### Motivos da escolha
+- Entrega experiência de “programa comum” no Windows.
+- Permite **duplo clique** em atalho e execução imediata.
+- Permite empacotar backend e frontend no mesmo instalador.
+- Reduz fricção para usuário leigo (sem terminal/manual).
 
-- Dashboard com indicadores:
-  - total de ferramentas ativas
-  - total de clientes ativos
-  - total de unidades emprestadas
-  - total de unidades disponíveis
-  - últimas movimentações
-- Cadastro de clientes:
-  - criar, editar, ativar/desativar, listar, pesquisar por nome/documento
-- Cadastro de ferramentas:
-  - criar, editar, listar, pesquisar por código/descrição
-  - validação para não permitir disponível > total
-- Empréstimos:
-  - seleção digitável/pesquisável (cliente e ferramenta)
-  - validação de saldo disponível
-  - baixa automática no estoque disponível
-  - grava histórico de movimentação
-- Devoluções:
-  - vinculadas a empréstimo em aberto
-  - validação de quantidade pendente
-  - atualização automática do estoque disponível
-  - grava histórico
-- Histórico completo de movimentações
+---
 
-## Estrutura de pastas
+## Comportamento do aplicativo
+
+Ao abrir o app:
+1. O Electron garante instância única (evita múltiplas janelas duplicadas).
+2. O app inicia o `backend.exe` automaticamente em background.
+3. O frontend abre em janela própria conectando na API local `127.0.0.1:8000`.
+4. O banco SQLite é criado automaticamente no diretório de dados do usuário.
+
+---
+
+## Estrutura principal
 
 ```bash
 .
 ├── backend/
 │   ├── app/main.py
-│   ├── Dockerfile
-│   └── requirements.txt
+│   ├── launcher/run_backend.py
+│   ├── requirements.txt
+│   └── Dockerfile
 ├── frontend/
-│   ├── app.js
 │   ├── index.html
+│   ├── app.js
 │   ├── styles.css
 │   └── Dockerfile
-├── db/
-│   └── init.sql
-├── docker-compose.yml
-└── README.md
+├── desktop/
+│   ├── main.js
+│   ├── preload.js
+│   ├── package.json
+│   ├── assets/
+│   │   ├── app.ico
+│   │   └── README.md
+│   └── scripts/
+│       ├── build-backend.ps1
+│       ├── build-desktop.ps1
+│       └── build-all.ps1
+├── db/init.sql
+└── docker-compose.yml
 ```
 
-## Como executar
+---
 
-### 1) Subir todo o sistema
+## Pré-requisitos (máquina de build)
+
+Para gerar o instalador `.exe` em Windows:
+- Windows 10/11
+- Python 3.11+ no `PATH`
+- Node.js 20+ e npm
+- PowerShell
+
+> Para usuário final, após instalado, não é necessário abrir terminal.
+
+---
+
+## Ícone do aplicativo
+
+Arquivo usado no build:
+- `desktop/assets/app.ico`
+
+Se quiser trocar:
+1. Gere um `.ico` multi-resolução (16/32/48/64/128/256).
+2. Substitua `desktop/assets/app.ico`.
+3. Rode o build novamente.
+
+---
+
+## Como gerar o executável/instalador
+
+### Opção recomendada (tudo automático)
+No PowerShell, na raiz do projeto:
+
+```powershell
+.\desktop\scripts\build-all.ps1
+```
+
+Esse script:
+1. cria venv de build do backend;
+2. instala dependências Python;
+3. gera `backend/dist/backend.exe` (PyInstaller);
+4. instala dependências do Electron;
+5. gera instalador Windows em `desktop/release/`.
+
+### Opção manual (passo a passo)
+
+#### 1) Gerar backend.exe
+```powershell
+.\desktop\scripts\build-backend.ps1
+```
+
+#### 2) Gerar instalador desktop
+```powershell
+.\desktop\scripts\build-desktop.ps1
+```
+
+---
+
+## Como executar o aplicativo
+
+Após build, execute o instalador em `desktop/release/` (arquivo `.exe` do instalador).
+
+Depois da instalação:
+- abra pelo atalho na área de trabalho;
+- ou menu iniciar “Ferramentaria”.
+
+O app sobe backend e banco automaticamente.
+
+---
+
+## Distribuição para outros computadores
+
+Entregar para o cliente final:
+- **somente o instalador** gerado em `desktop/release/`.
+
+No computador destino:
+1. executar instalador;
+2. concluir instalação;
+3. abrir via atalho.
+
+Não é necessário instalar PostgreSQL, Docker ou rodar comandos.
+
+---
+
+## Execução por Docker (modo desenvolvimento legado)
+
+A estrutura Docker original permanece no repositório para ambiente de desenvolvimento/servidor:
 
 ```bash
 docker compose up --build
 ```
 
-### 2) Acessar aplicação
+---
 
-- Frontend: http://localhost:3000
-- Backend (docs): http://localhost:8000/docs
-- Health check: http://localhost:8000/health
+## Limitações e observações
 
-## Banco de dados
-
-O script `db/init.sql` cria as tabelas principais:
-
-- `clientes`
-- `ferramentas`
-- `emprestimos`
-- `movimentacoes`
-
-Com:
-
-- chaves primárias e estrangeiras
-- índices de busca
-- constraints para integridade de quantidades
-
-## Regras de negócio cobertas
-
-- Não permite empréstimo com quantidade maior que a disponível.
-- Não permite devolução acima da quantidade pendente no empréstimo.
-- Atualiza automaticamente saldo disponível nas operações.
-- Mantém histórico de movimentações de empréstimo e devolução.
-- Valida cliente/ferramenta ativos nas operações de empréstimo.
-
-## Observações
-
-- O backend também aplica `create_all` no startup para garantir criação de tabelas caso necessário.
-- Em ambiente de produção, recomenda-se adicionar autenticação/autorização e controle mais robusto de concorrência transacional.
+- O build final deve ser feito em Windows para gerar instalador `.exe` adequadamente.
+- O arquivo `desktop/assets/app.ico` atual é placeholder e deve ser substituído por ícone real.
+- Para atualizações automáticas (auto-update), assinatura de código e telemetria, recomenda-se evolução futura com pipeline CI/CD e code signing.

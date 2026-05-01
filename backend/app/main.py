@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 from typing import Literal, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -18,9 +19,13 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
-DATABASE_URL = "postgresql+psycopg2://postgres:postgres@db:5432/ferramentaria"
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ferramentaria.db")
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
