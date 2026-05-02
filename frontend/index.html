@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ferramentaria</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Ferramentaria</h1>
+      <nav>
+        <button data-view="dashboard">Dashboard</button>
+        <button data-view="clientes">Clientes</button>
+        <button data-view="ferramentas">Ferramentas</button>
+        <button data-view="emprestimos">Empréstimos</button>
+        <button data-view="devolucoes">Devoluções</button>
+        <button data-view="historico">Histórico</button>
+      </nav>
+    </aside>
+
+    <main id="content">
+      <section id="dashboard" class="view"></section>
+      <section id="clientes" class="view hidden"></section>
+      <section id="ferramentas" class="view hidden"></section>
+      <section id="emprestimos" class="view hidden"></section>
+      <section id="devolucoes" class="view hidden"></section>
+      <section id="historico" class="view hidden"></section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
