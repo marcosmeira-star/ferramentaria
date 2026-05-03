@@ -54,4 +54,3 @@ Ao abrir o app:
 │       ├── build-desktop.ps1
 │       └── build-all.ps1
 ├── db/init.sql
-└── docker-compose.yml
