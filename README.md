@@ -221,3 +221,43 @@ Esse erro ocorria quando o script seguia mesmo após falha anterior e/ou fora da
 Correção aplicada:
 - o script agora para imediatamente em qualquer comando com falha;
 - valida diretório `backend` por caminho absoluto antes de instalar dependências.
+
+---
+
+## Build Windows (fluxo corrigido)
+
+### Versão de Python suportada
+- **Python 3.11 x64** ou **Python 3.12 x64**.
+- O script tenta localizar automaticamente com `py -3.12` e `py -3.11`.
+- Se não encontrar, o build falha imediatamente com mensagem clara.
+
+### Ordem correta dos comandos (PowerShell, na raiz do projeto)
+
+```powershell
+.\desktop\scripts\build-backend.ps1
+.\desktop\scripts\build-desktop.ps1
+```
+
+Ou tudo em um único comando:
+
+```powershell
+.\desktop\scripts\build-all.ps1
+```
+
+### O que cada script garante
+- `build-backend.ps1`
+  - resolve caminhos absolutos a partir da pasta do script;
+  - valida Python compatível;
+  - instala dependências com caminho absoluto de `requirements.txt`;
+  - gera e valida `backend/dist/backend.exe`.
+- `build-desktop.ps1`
+  - só executa se `backend/dist/backend.exe` existir;
+  - valida se `desktop/assets/app.ico` é arquivo válido (não vazio/corrompido básico);
+  - executa `npm install` e `npm run dist:win` em `desktop/`.
+- `build-all.ps1`
+  - executa backend primeiro;
+  - confirma `backend.exe`;
+  - só então executa o build do Electron.
+
+### Sobre erro `EOF` no `app.ico`
+Se o empacotamento acusar `EOF`, substitua `desktop/assets/app.ico` por um `.ico` válido (multi-tamanho: 16/32/48/256).
